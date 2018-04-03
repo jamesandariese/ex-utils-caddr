@@ -1,6 +1,6 @@
 defmodule Caddr do
   @moduledoc """
-  Documentation for Caddr.
+  Documentation for Elixir Utils by Caddr.
   """
 
   @doc """
@@ -14,20 +14,29 @@ defmodule Caddr do
   """
 
   def uniqc(e) do
-    Enum.group_by(e, fn x -> x end)
+    Enum.map(e, &({&1}))
+    |> reduce_groups({0}, [{&Enum.count/1, 0}])
     |> Map.to_list
-    |> Enum.map(fn {x, y} -> {x, Enum.count(y)} end)
+    |> Enum.map(fn {{x}, {y}} -> {x, y} end)
     |> Map.new
   end
 
 
   @doc """
+  Reduce by groups.  Similar to SELECT x, y, SUM(z), SUM(w) FROM stuff GROUP BY (x,y);
+
+  This will always return tuples even if single items in a list are passed in.
+
   ## Examples
+      iex(1)> Caddr.reduce_groups([1, 2, 3, 1, 2, 3], {0}, [{&Enum.count/1, 0}])
+      %{{1} => {2}, {2} => {2}, {3} => {2}}
+
       iex> Caddr.reduce_groups([{1,2,3,5}, {1,2,1,5}, {1,1,1,5}], {0, 1}, [{&Enum.sum/1, 2}, {&Enum.sum/1, 3}])
       %{{1, 2} => {4, 10}, {1, 1} => {1, 5}}
   """
   def reduce_groups(e, gb, aggs) do
     e
+    |> Enum.map(&tuplize/1)
     |> Enum.group_by(&(select_from_tuple(&1, gb)))
     |> Map.to_list
     |> Enum.map(fn {g, n} ->
@@ -56,6 +65,9 @@ defmodule Caddr do
   """
   def select_from_tuple(t, el) do
     Tuple.to_list(el)
-    |> Enum.reduce({}, fn y,x -> Tuple.append(x, elem(t, y)) end)
+    |> Enum.reduce({}, fn y,x -> Tuple.append(x, elem(tuplize(t), y)) end)
   end
+
+  defp tuplize(t) when is_tuple(t), do: t
+  defp tuplize(t), do: {t}
 end
