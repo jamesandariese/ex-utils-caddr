@@ -23,8 +23,8 @@ defmodule Caddr do
 
   @doc """
   ## Examples
-      iex> Caddr.reduce_groups([{1,2,3}, {1,2,1}, {1,1,1}], {0, 1}, [{&Enum.sum/1, 2}]))
-      %{{1, 2} => 4, {1, 1} => 1}
+      iex> Caddr.reduce_groups([{1,2,3,5}, {1,2,1,5}, {1,1,1,5}], {0, 1}, [{&Enum.sum/1, 2}, {&Enum.sum/1, 3}])
+      %{{1, 2} => {4, 10}, {1, 1} => {1, 5}}
   """
   def reduce_groups(e, gb, aggs) do
     e
